@@ -1,6 +1,8 @@
-use crate::{read_lines, read_line_groups};
-use std::collections::HashSet;
+use crate::*;
+use std::collections::{HashSet, HashMap};
+use crate::string::*;
 use std::io;
+use anyhow::Result;
 
 pub fn day01() -> io::Result<()> {
     let lines = read_lines("input/01.in", false)?;
@@ -199,7 +201,7 @@ pub fn day04(use_example: bool) -> io::Result<(usize, usize)> {
             .map(|x| x.parse::<usize>().unwrap())
             .collect();
 
-        if (b[1] < a[0] || a[1] < b[0]) {
+        if b[1] < a[0] || a[1] < b[0] {
             continue;
         }
         result2 += 1;
@@ -209,7 +211,7 @@ pub fn day04(use_example: bool) -> io::Result<(usize, usize)> {
     Ok((result1, result2))
 }
 
-fn day05(
+pub fn day05(
     use_example: bool,
     num_stacks: usize,
     stack_height: usize,
@@ -288,5 +290,297 @@ fn day05(
         .collect();
     let result2 = String::from_utf8(r).unwrap();
 
+    Ok((result1, result2))
+}
+
+
+struct File {
+    name: String,
+    size: usize
+}
+
+
+struct Dir {
+    name: String,
+    parent: String,
+    files: Vec<File>,
+    children: Vec<String>,
+}
+
+impl Default for Dir {
+    fn default() -> Self {
+        Self { name: "".to_string(), parent: "".to_string(), files: vec!(), children: vec![] }
+    }
+}
+
+impl Dir {
+    fn size(&self, dirs: &HashMap<String, Dir>) -> usize {
+	let f = self.files.iter().map(|x| x.size).sum::<usize>();
+	let c = self.children.iter().map(|x| dirs[x].size(dirs)).sum::<usize>();
+	f + c
+    }
+}
+
+pub fn day07(use_example: bool) -> Result<(usize, usize)> {
+    let day = 7;
+    let path = if use_example {
+        format!("input/example{:02}.in", day)
+    } else {
+        format!("input/{:02}.in", day)
+    };
+
+    
+
+    let lines = read_lines(path, true)?;
+    let mut dirs: HashMap<String, Dir> = HashMap::new();
+
+    let mut curr: String = "/".to_string();
+    let mut root = Dir::default();
+    root.name = "/".to_string();
+    dirs.insert("/".to_string(), root);
+
+    for line in &lines {
+	let toks: Vec<_> = line.split(" ").collect();
+	if line.starts_with("$") {
+	    if toks[1] == "cd" {
+		if toks[2] == ".." {
+		    let d = dirs[&curr].parent.clone(); 
+		    curr = d;
+		} else {
+		    curr = format!("{};{}", curr, toks[2].to_string());
+		}
+	    } else if toks[1] == "ls" {
+	    }
+	} else {
+	    if line.starts_with("dir") {
+		let t = toks[1].to_string();
+		let subname = format!("{};{}", curr, t);
+		dirs.entry(subname.clone()).or_default().parent = curr.clone();
+		dirs.entry(subname.clone()).or_default().name = subname.clone();
+		dirs.entry(curr.clone()).or_default().children.push(subname.clone());
+	    } else {
+		let size = as_usize(toks[0]);
+		let name = toks[1];
+		dirs.entry(curr.clone()).or_default().files.push(File { name: name.to_string(), size });
+	    }
+	}
+    }
+
+    // Part 1
+    let result1: usize = dirs.values().map(|x| x.size(&dirs)).filter(|z| *z <= 100000).sum();
+
+    // Part 2
+    let size: isize = dirs["/;/"].size(&dirs) as isize;
+    println!("{}", size);
+    let min_d = size - 40000000;
+    println!("{}", min_d);
+    let result2 = dirs.values().map(|x| x.size(&dirs))
+	.filter(|z| *z >= min_d as usize)
+	.min().unwrap();
+    {}
+
+    Ok((result1, result2))
+}
+
+
+pub fn day08(use_example: bool) -> Result<(usize, usize)> {
+    let day = 8;
+    let path = if use_example {
+        format!("input/example{:02}.in", day)
+    } else {
+        format!("input/{:02}.in", day)
+    };
+
+    let g = read_digit_grid(path);
+    let dim = g.dim();
+
+    // Part 1
+    let mut count = 0;
+    for j in 0..dim.1 {
+	'outer: for i in 0..dim.0 {
+	    let t = g[(i, j)];
+	    let mut found = true;
+	    for x in 0..i as isize {
+		if g[(x as usize, j)] >= t {
+		    found = false;
+		    break;
+		}
+	    }
+	    if found {
+		count += 1;
+		continue;
+	    }
+	    found = true;
+	    for x in i+1..dim.0 {
+		if g[(x, j)] >= t {
+		    found = false;
+		    break;
+		}
+	    }
+	    if found {
+		count += 1;
+		continue;
+	    }
+	    found = true;
+	    for y in 0..j as isize {
+		if g[(i, y as usize)] >= t {
+		    found = false;
+		    break;
+		}
+	    }
+	    if found {
+		count += 1;
+		continue;
+	    }
+	    found = true;
+	    for y in j+1..dim.1 {
+		if g[(i, y)] >= t {
+		    found = false;
+		    break;
+		}
+	    }
+	    if found {
+		count += 1;
+		continue;
+	    }
+	}
+    }
+    let result1 = count;
+
+
+    // Part 2
+    let mut result2 = 0;
+    for j in 1..dim.1-1 {
+	'outer: for i in 1..dim.0-1 {
+	    let t = g[(i, j)];
+//	    let mut found = true;
+	    let mut total = 1;
+	    
+	    let mut c = 0;
+	    for x in (0..i as isize).rev() {
+		c += 1;
+		if g[(x as usize, j)] >= t {
+		    break;
+		}
+	    }
+	    total *= c;
+	    c= 0 ;
+	    for x in i+1..dim.0 {
+		c += 1;
+		if g[(x, j)] >= t {
+		    break;
+		}
+	    }
+	    total *= c;
+	    c = 0;
+	    for y in (0..j as isize).rev() {
+		c += 1;
+		if g[(i, y as usize)] >= t {
+		    break;
+		}
+	    }
+	    total *= c;
+	    c = 0;
+	    for y in j+1..dim.1 {
+		c += 1;
+		if g[(i, y)] >= t {
+		    break;
+		}
+	    }
+	    total *= c;
+	    result2 = result2.max(total);
+	}
+    }
+
+    Ok((result1, result2))
+}
+
+
+fn add(a: (isize, isize), b: (isize, isize)) -> (isize, isize) {
+    (a.0 + b.0, a.1 + b.1)
+}
+
+fn next_to(a: (isize, isize), b: (isize, isize)) -> bool {
+    (a.0 - b.0).abs().max((a.1 - b.1).abs()) <= 1
+}
+
+pub fn day09(use_example: bool) -> Result<(usize, usize)> {
+    let day = 9;
+    let path = if use_example {
+        format!("input/example{:02}.in", day)
+    } else {
+        format!("input/{:02}.in", day)
+    };
+
+    let lines = read_lines(path, true)?;
+
+    let mut head = (0, 0);
+    let mut tail = (0, 0);
+
+    let mut positions: HashSet<(isize, isize)> = HashSet::new();
+
+    // Part 1
+    let mut dirs = HashMap::new();
+    dirs.insert(b'U', (0, 1));
+    dirs.insert(b'D', (0, -1));
+    dirs.insert(b'R', (1, 0));
+    dirs.insert(b'L', (-1, 0));
+
+    positions.insert(tail);
+
+    for line in &lines {
+	let toks: Vec<&str> = line.split(" ").collect();
+	let d = toks[0].bytes().next().unwrap();
+	let dir = dirs[&d];
+	let num = as_usize(toks[1]);
+
+	for _ in 0..num {
+	    head = add(head, dir);
+
+	    if next_to(head, tail) {
+		continue;
+	    }
+
+	    let mut dx = (head.0 - tail.0);
+	    dx = dx.abs().min(1) * dx.signum();
+	    let mut dy = (head.1- tail.1);
+	    dy = dy.abs().min(1) * dy.signum();
+	    tail = (tail.0 + dx, tail.1 + dy);
+	    positions.insert(tail);
+	}
+
+
+    }
+    let result1 = positions.len();
+
+    // Part 2
+    let mut knots: Vec<_> = vec![(0, 0); 10];
+    positions.clear();
+
+    for line in &lines {
+	let toks: Vec<&str> = line.split(" ").collect();
+	let d = toks[0].bytes().next().unwrap();
+	let dir = dirs[&d];
+	let num = as_usize(toks[1]);
+
+	for _ in 0..num {
+	    knots[0] = add(knots[0], dir);
+	    for i in 1..10 {
+		if next_to(knots[i-1], knots[i]) {
+		    continue;
+		}
+
+		let mut dx = (knots[i-1].0 - knots[i].0);
+		dx = dx.abs().min(1) * dx.signum();
+		let mut dy = (knots[i-1].1- knots[i].1);
+		dy = dy.abs().min(1) * dy.signum();
+		knots[i] = (knots[i].0 + dx, knots[i].1 + dy);
+	    }
+	    positions.insert(knots[9]);
+	}
+
+    }
+
+    let result2 = positions.len();
     Ok((result1, result2))
 }
