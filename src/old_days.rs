@@ -1,8 +1,8 @@
-use crate::*;
-use std::collections::{HashSet, HashMap};
 use crate::string::*;
-use std::io;
+use crate::*;
 use anyhow::Result;
+use std::collections::{HashMap, HashSet};
+use std::io;
 
 pub fn day01() -> io::Result<()> {
     let lines = read_lines("input/01.in", false)?;
@@ -34,7 +34,7 @@ pub fn day02() -> io::Result<()> {
 
     let mut total = 0;
     for line in &lines {
-        let toks: Vec<&str> = line.split(" ").collect();
+        let toks: Vec<&str> = line.split(' ').collect();
         if toks.len() < 2 {
             break;
         }
@@ -64,7 +64,7 @@ pub fn day02() -> io::Result<()> {
 
     let mut total = 0;
     for line in &lines {
-        let toks: Vec<&str> = line.split(" ").collect();
+        let toks: Vec<&str> = line.split(' ').collect();
         if toks.len() < 2 {
             break;
         }
@@ -119,8 +119,8 @@ pub fn day03(use_example: bool) -> io::Result<(usize, usize)> {
     let score1: usize = common
         .iter()
         .map(|x| match *x {
-            y if b'a' <= y && y <= b'z' => (y - b'a' + 1) as usize,
-            y if b'A' <= y && y <= b'Z' => (y - b'A' + 27) as usize,
+            y if (b'a'..=b'z').contains(&y) => (y - b'a' + 1) as usize,
+            y if (b'A'..=b'Z').contains(&y) => (y - b'A' + 27) as usize,
             _ => panic!(),
         })
         .sum::<usize>();
@@ -128,7 +128,7 @@ pub fn day03(use_example: bool) -> io::Result<(usize, usize)> {
     // Part 2
     let mut common = Vec::new();
     let mut count = 0;
-    let ls: Vec<String> = lines.iter().cloned().collect();
+    let ls: Vec<String> = lines.to_vec();
     loop {
         if count >= ls.len() {
             break;
@@ -150,8 +150,8 @@ pub fn day03(use_example: bool) -> io::Result<(usize, usize)> {
     let score2: usize = common
         .iter()
         .map(|x| match *x {
-            y if b'a' <= y && y <= b'z' => (y - b'a' + 1) as usize,
-            y if b'A' <= y && y <= b'Z' => (y - b'A' + 27) as usize,
+            y if (b'a'..=b'z').contains(&y) => (y - b'a' + 1) as usize,
+            y if (b'A'..=b'Z').contains(&y) => (y - b'A' + 27) as usize,
             _ => panic!(),
         })
         .sum::<usize>();
@@ -172,13 +172,13 @@ pub fn day04(use_example: bool) -> io::Result<(usize, usize)> {
     // Part 1
     let mut result1 = 0;
     for line in &lines {
-        let pieces: Vec<_> = line.split(",").collect();
+        let pieces: Vec<_> = line.split(',').collect();
         let a: Vec<_> = pieces[0]
-            .split("-")
+            .split('-')
             .map(|x| x.parse::<usize>().unwrap())
             .collect();
         let b: Vec<_> = pieces[1]
-            .split("-")
+            .split('-')
             .map(|x| x.parse::<usize>().unwrap())
             .collect();
 
@@ -191,13 +191,13 @@ pub fn day04(use_example: bool) -> io::Result<(usize, usize)> {
     // Part 2
     let mut result2 = 0;
     for line in lines {
-        let pieces: Vec<_> = line.split(",").collect();
+        let pieces: Vec<_> = line.split(',').collect();
         let a: Vec<_> = pieces[0]
-            .split("-")
+            .split('-')
             .map(|x| x.parse::<usize>().unwrap())
             .collect();
         let b: Vec<_> = pieces[1]
-            .split("-")
+            .split('-')
             .map(|x| x.parse::<usize>().unwrap())
             .collect();
 
@@ -238,7 +238,7 @@ pub fn day05(
     }
 
     for line in &lines[stack_height + 1..] {
-        let toks: Vec<_> = line.split(" ").collect();
+        let toks: Vec<_> = line.split(' ').collect();
         let n = toks[1].parse::<usize>().unwrap();
         let a = toks[3].parse::<usize>().unwrap() - 1;
         let b = toks[5].parse::<usize>().unwrap() - 1;
@@ -267,7 +267,7 @@ pub fn day05(
     }
 
     for line in &lines[stack_height + 1..] {
-        let toks: Vec<_> = line.split(" ").collect();
+        let toks: Vec<_> = line.split(' ').collect();
         let n = toks[1].parse::<usize>().unwrap();
         let a = toks[3].parse::<usize>().unwrap() - 1;
         let b = toks[5].parse::<usize>().unwrap() - 1;
@@ -293,12 +293,9 @@ pub fn day05(
     Ok((result1, result2))
 }
 
-
 struct File {
-    name: String,
-    size: usize
+    size: usize,
 }
-
 
 struct Dir {
     name: String,
@@ -309,15 +306,24 @@ struct Dir {
 
 impl Default for Dir {
     fn default() -> Self {
-        Self { name: "".to_string(), parent: "".to_string(), files: vec!(), children: vec![] }
+        Self {
+            name: "".to_string(),
+            parent: "".to_string(),
+            files: vec![],
+            children: vec![],
+        }
     }
 }
 
 impl Dir {
     fn size(&self, dirs: &HashMap<String, Dir>) -> usize {
-	let f = self.files.iter().map(|x| x.size).sum::<usize>();
-	let c = self.children.iter().map(|x| dirs[x].size(dirs)).sum::<usize>();
-	f + c
+        let f = self.files.iter().map(|x| x.size).sum::<usize>();
+        let c = self
+            .children
+            .iter()
+            .map(|x| dirs[x].size(dirs))
+            .sum::<usize>();
+        f + c
     }
 }
 
@@ -329,59 +335,68 @@ pub fn day07(use_example: bool) -> Result<(usize, usize)> {
         format!("input/{:02}.in", day)
     };
 
-    
-
     let lines = read_lines(path, true)?;
     let mut dirs: HashMap<String, Dir> = HashMap::new();
 
     let mut curr: String = "/".to_string();
-    let mut root = Dir::default();
-    root.name = "/".to_string();
+    let root = Dir {
+        name: "/".to_string(),
+        ..Default::default()
+    };
     dirs.insert("/".to_string(), root);
 
     for line in &lines {
-	let toks: Vec<_> = line.split(" ").collect();
-	if line.starts_with("$") {
-	    if toks[1] == "cd" {
-		if toks[2] == ".." {
-		    let d = dirs[&curr].parent.clone(); 
-		    curr = d;
-		} else {
-		    curr = format!("{};{}", curr, toks[2].to_string());
-		}
-	    } else if toks[1] == "ls" {
-	    }
-	} else {
-	    if line.starts_with("dir") {
-		let t = toks[1].to_string();
-		let subname = format!("{};{}", curr, t);
-		dirs.entry(subname.clone()).or_default().parent = curr.clone();
-		dirs.entry(subname.clone()).or_default().name = subname.clone();
-		dirs.entry(curr.clone()).or_default().children.push(subname.clone());
-	    } else {
-		let size = as_usize(toks[0]);
-		let name = toks[1];
-		dirs.entry(curr.clone()).or_default().files.push(File { name: name.to_string(), size });
-	    }
-	}
+        let toks: Vec<_> = line.split(' ').collect();
+        if line.starts_with('$') {
+            if toks[1] == "cd" {
+                if toks[2] == ".." {
+                    let d = dirs[&curr].parent.clone();
+                    curr = d;
+                } else {
+                    curr = format!("{};{}", curr, toks[2]);
+                }
+            } else if toks[1] == "ls" {
+            }
+        } else if line.starts_with("dir") {
+            let t = toks[1].to_string();
+            let subname = format!("{};{}", curr, t);
+            dirs.entry(subname.clone()).or_default().parent = curr.clone();
+            dirs.entry(subname.clone()).or_default().name = subname.clone();
+            dirs.entry(curr.clone())
+                .or_default()
+                .children
+                .push(subname.clone());
+        } else {
+            let size = as_usize(toks[0]);
+            dirs.entry(curr.clone())
+                .or_default()
+                .files
+                .push(File { size });
+        }
     }
 
     // Part 1
-    let result1: usize = dirs.values().map(|x| x.size(&dirs)).filter(|z| *z <= 100000).sum();
+    let result1: usize = dirs
+        .values()
+        .map(|x| x.size(&dirs))
+        .filter(|z| *z <= 100000)
+        .sum();
 
     // Part 2
     let size: isize = dirs["/;/"].size(&dirs) as isize;
     println!("{}", size);
     let min_d = size - 40000000;
     println!("{}", min_d);
-    let result2 = dirs.values().map(|x| x.size(&dirs))
-	.filter(|z| *z >= min_d as usize)
-	.min().unwrap();
+    let result2 = dirs
+        .values()
+        .map(|x| x.size(&dirs))
+        .filter(|z| *z >= min_d as usize)
+        .min()
+        .unwrap();
     {}
 
     Ok((result1, result2))
 }
-
 
 pub fn day08(use_example: bool) -> Result<(usize, usize)> {
     let day = 8;
@@ -397,104 +412,102 @@ pub fn day08(use_example: bool) -> Result<(usize, usize)> {
     // Part 1
     let mut count = 0;
     for j in 0..dim.1 {
-	'outer: for i in 0..dim.0 {
-	    let t = g[(i, j)];
-	    let mut found = true;
-	    for x in 0..i as isize {
-		if g[(x as usize, j)] >= t {
-		    found = false;
-		    break;
-		}
-	    }
-	    if found {
-		count += 1;
-		continue;
-	    }
-	    found = true;
-	    for x in i+1..dim.0 {
-		if g[(x, j)] >= t {
-		    found = false;
-		    break;
-		}
-	    }
-	    if found {
-		count += 1;
-		continue;
-	    }
-	    found = true;
-	    for y in 0..j as isize {
-		if g[(i, y as usize)] >= t {
-		    found = false;
-		    break;
-		}
-	    }
-	    if found {
-		count += 1;
-		continue;
-	    }
-	    found = true;
-	    for y in j+1..dim.1 {
-		if g[(i, y)] >= t {
-		    found = false;
-		    break;
-		}
-	    }
-	    if found {
-		count += 1;
-		continue;
-	    }
-	}
+        for i in 0..dim.0 {
+            let t = g[(i, j)];
+            let mut found = true;
+            for x in 0..i as isize {
+                if g[(x as usize, j)] >= t {
+                    found = false;
+                    break;
+                }
+            }
+            if found {
+                count += 1;
+                continue;
+            }
+            found = true;
+            for x in i + 1..dim.0 {
+                if g[(x, j)] >= t {
+                    found = false;
+                    break;
+                }
+            }
+            if found {
+                count += 1;
+                continue;
+            }
+            found = true;
+            for y in 0..j as isize {
+                if g[(i, y as usize)] >= t {
+                    found = false;
+                    break;
+                }
+            }
+            if found {
+                count += 1;
+                continue;
+            }
+            found = true;
+            for y in j + 1..dim.1 {
+                if g[(i, y)] >= t {
+                    found = false;
+                    break;
+                }
+            }
+            if found {
+                count += 1;
+                continue;
+            }
+        }
     }
     let result1 = count;
 
-
     // Part 2
     let mut result2 = 0;
-    for j in 1..dim.1-1 {
-	'outer: for i in 1..dim.0-1 {
-	    let t = g[(i, j)];
-//	    let mut found = true;
-	    let mut total = 1;
-	    
-	    let mut c = 0;
-	    for x in (0..i as isize).rev() {
-		c += 1;
-		if g[(x as usize, j)] >= t {
-		    break;
-		}
-	    }
-	    total *= c;
-	    c= 0 ;
-	    for x in i+1..dim.0 {
-		c += 1;
-		if g[(x, j)] >= t {
-		    break;
-		}
-	    }
-	    total *= c;
-	    c = 0;
-	    for y in (0..j as isize).rev() {
-		c += 1;
-		if g[(i, y as usize)] >= t {
-		    break;
-		}
-	    }
-	    total *= c;
-	    c = 0;
-	    for y in j+1..dim.1 {
-		c += 1;
-		if g[(i, y)] >= t {
-		    break;
-		}
-	    }
-	    total *= c;
-	    result2 = result2.max(total);
-	}
+    for j in 1..dim.1 - 1 {
+        for i in 1..dim.0 - 1 {
+            let t = g[(i, j)];
+            //	    let mut found = true;
+            let mut total = 1;
+
+            let mut c = 0;
+            for x in (0..i as isize).rev() {
+                c += 1;
+                if g[(x as usize, j)] >= t {
+                    break;
+                }
+            }
+            total *= c;
+            c = 0;
+            for x in i + 1..dim.0 {
+                c += 1;
+                if g[(x, j)] >= t {
+                    break;
+                }
+            }
+            total *= c;
+            c = 0;
+            for y in (0..j as isize).rev() {
+                c += 1;
+                if g[(i, y as usize)] >= t {
+                    break;
+                }
+            }
+            total *= c;
+            c = 0;
+            for y in j + 1..dim.1 {
+                c += 1;
+                if g[(i, y)] >= t {
+                    break;
+                }
+            }
+            total *= c;
+            result2 = result2.max(total);
+        }
     }
 
     Ok((result1, result2))
 }
-
 
 fn add(a: (isize, isize), b: (isize, isize)) -> (isize, isize) {
     (a.0 + b.0, a.1 + b.1)
@@ -529,27 +542,25 @@ pub fn day09(use_example: bool) -> Result<(usize, usize)> {
     positions.insert(tail);
 
     for line in &lines {
-	let toks: Vec<&str> = line.split(" ").collect();
-	let d = toks[0].bytes().next().unwrap();
-	let dir = dirs[&d];
-	let num = as_usize(toks[1]);
+        let toks: Vec<&str> = line.split(' ').collect();
+        let d = toks[0].bytes().next().unwrap();
+        let dir = dirs[&d];
+        let num = as_usize(toks[1]);
 
-	for _ in 0..num {
-	    head = add(head, dir);
+        for _ in 0..num {
+            head = add(head, dir);
 
-	    if next_to(head, tail) {
-		continue;
-	    }
+            if next_to(head, tail) {
+                continue;
+            }
 
-	    let mut dx = (head.0 - tail.0);
-	    dx = dx.abs().min(1) * dx.signum();
-	    let mut dy = (head.1- tail.1);
-	    dy = dy.abs().min(1) * dy.signum();
-	    tail = (tail.0 + dx, tail.1 + dy);
-	    positions.insert(tail);
-	}
-
-
+            let mut dx = head.0 - tail.0;
+            dx = dx.abs().min(1) * dx.signum();
+            let mut dy = head.1 - tail.1;
+            dy = dy.abs().min(1) * dy.signum();
+            tail = (tail.0 + dx, tail.1 + dy);
+            positions.insert(tail);
+        }
     }
     let result1 = positions.len();
 
@@ -558,29 +569,112 @@ pub fn day09(use_example: bool) -> Result<(usize, usize)> {
     positions.clear();
 
     for line in &lines {
-	let toks: Vec<&str> = line.split(" ").collect();
-	let d = toks[0].bytes().next().unwrap();
-	let dir = dirs[&d];
-	let num = as_usize(toks[1]);
+        let toks: Vec<&str> = line.split(' ').collect();
+        let d = toks[0].bytes().next().unwrap();
+        let dir = dirs[&d];
+        let num = as_usize(toks[1]);
 
-	for _ in 0..num {
-	    knots[0] = add(knots[0], dir);
-	    for i in 1..10 {
-		if next_to(knots[i-1], knots[i]) {
-		    continue;
-		}
+        for _ in 0..num {
+            knots[0] = add(knots[0], dir);
+            for i in 1..10 {
+                if next_to(knots[i - 1], knots[i]) {
+                    continue;
+                }
 
-		let mut dx = (knots[i-1].0 - knots[i].0);
-		dx = dx.abs().min(1) * dx.signum();
-		let mut dy = (knots[i-1].1- knots[i].1);
-		dy = dy.abs().min(1) * dy.signum();
-		knots[i] = (knots[i].0 + dx, knots[i].1 + dy);
-	    }
-	    positions.insert(knots[9]);
-	}
-
+                let mut dx = knots[i - 1].0 - knots[i].0;
+                dx = dx.abs().min(1) * dx.signum();
+                let mut dy = knots[i - 1].1 - knots[i].1;
+                dy = dy.abs().min(1) * dy.signum();
+                knots[i] = (knots[i].0 + dx, knots[i].1 + dy);
+            }
+            positions.insert(knots[9]);
+        }
     }
 
     let result2 = positions.len();
     Ok((result1, result2))
+}
+
+pub fn day10(use_example: bool) -> Result<(isize, isize)> {
+    let day = 10;
+    let path = if use_example {
+        format!("input/example{:02}.in", day)
+    } else {
+        format!("input/{:02}.in", day)
+    };
+    let signals = vec![20, 60, 100, 140, 180, 220];
+
+    let lines = read_lines(path, true)?;
+
+    // Part 1
+    let mut n = 0;
+    let mut cycle = 0;
+    let mut result1 = 0;
+    let mut reg = 1;
+    for line in &lines {
+        let tok: Vec<_> = line.split(' ').collect();
+        let mut new_reg = reg;
+        if tok[0] == "noop" {
+            cycle += 1;
+        } else {
+            let n = as_isize(tok[1]);
+            new_reg = reg + n;
+            cycle += 2;
+        }
+        if cycle >= signals[n] {
+            result1 += reg * signals[n];
+            n += 1;
+            if n >= signals.len() {
+                break;
+            }
+        }
+        reg = new_reg
+    }
+
+    // Part 2
+    let row = vec!['.'; 40];
+
+    let mut grid = vec![];
+    for _ in 0..6 {
+        grid.push(row.clone());
+    }
+    let mut pixel_pos: [isize; 2] = [0, 0];
+    let mut sprite_pos: isize = 1;
+    for line in &lines {
+        let tok: Vec<_> = line.split(' ').collect();
+        if (sprite_pos - pixel_pos[0]).abs() <= 1 {
+            grid[pixel_pos[1] as usize][pixel_pos[0] as usize] = '#';
+        }
+        pixel_pos[0] += 1;
+        if pixel_pos[0] == 40 {
+            pixel_pos[1] += 1;
+            pixel_pos[0] = 0;
+            if pixel_pos[1] == 6 {
+                break;
+            }
+        }
+        if tok[0] == "addx" {
+            if (sprite_pos - pixel_pos[0]).abs() <= 1 {
+                grid[pixel_pos[1] as usize][pixel_pos[0] as usize] = '#';
+            }
+
+            pixel_pos[0] += 1;
+            if pixel_pos[0] == 40 {
+                pixel_pos[1] += 1;
+                pixel_pos[0] = 0;
+                if pixel_pos[1] == 6 {
+                    break;
+                }
+            }
+            sprite_pos += as_isize(tok[1]);
+        }
+    }
+    for g in grid.iter() {
+        for c in g.iter() {
+            print!("{}", c);
+        }
+        println!();
+    }
+
+    Ok((result1, 0))
 }

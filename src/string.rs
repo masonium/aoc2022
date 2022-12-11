@@ -1,5 +1,5 @@
-use std::str::FromStr;
 use std::fmt::Debug;
+use std::str::FromStr;
 
 /// Infallibly parse a string as usize
 pub fn as_usize(s: &str) -> usize {

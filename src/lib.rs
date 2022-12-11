@@ -1,10 +1,10 @@
 use colored::Colorize;
 use scraper::{Html, Selector};
-use std::str::FromStr;
 
 pub mod io;
 pub mod old_days;
 pub mod string;
+pub mod day11;
 
 pub use io::*;
 pub use string::*;
@@ -53,9 +53,9 @@ pub fn check_day(day: usize, p0: String, p1: String) -> anyhow::Result<(bool, us
     };
     println!(
         "Example 1: given answer {} {} calculted {}",
-        format!("{}", answers[0]).bold(),
+        answers[0].bold(),
         result_str,
-        format!("{}", p0).bold()
+        p0.bold()
     );
 
     if answers.len() >= 2 {
@@ -67,9 +67,9 @@ pub fn check_day(day: usize, p0: String, p1: String) -> anyhow::Result<(bool, us
         };
         println!(
             "Example 2: given answer {} {} calculted {}",
-            format!("{}", answers[1]).bold(),
+            answers[1].bold(),
             result_str,
-            format!("{}", p1).bold()
+            p1.bold()
         );
     }
 

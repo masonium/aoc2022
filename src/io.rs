@@ -7,7 +7,7 @@ use std::str::FromStr;
 /// Return the set of lines in the file, optionally removing any empty lines.
 pub fn read_lines<P: AsRef<Path>>(p: P, filter_empty: bool) -> std::io::Result<Vec<String>> {
     let b = std::fs::read_to_string(p)?;
-    Ok(b.split("\n")
+    Ok(b.split('\n')
         .map(|x| x.to_string())
         .filter(|x| !filter_empty || !x.is_empty())
         .collect())
@@ -17,8 +17,13 @@ pub fn read_lines<P: AsRef<Path>>(p: P, filter_empty: bool) -> std::io::Result<V
 pub fn read_line_groups<P: AsRef<Path>>(p: P) -> std::io::Result<Vec<Vec<String>>> {
     let b = std::fs::read_to_string(p)?;
     Ok(b.split("\n\n")
-        .map(|x: &str| x.to_string().split("\n").map(|x| x.to_string())
-	     .filter(|s| !s.is_empty()).collect())
+        .map(|x: &str| {
+            x.to_string()
+                .split('\n')
+                .map(|x| x.to_string())
+                .filter(|s| !s.is_empty())
+                .collect()
+        })
         .collect())
 }
 
@@ -45,7 +50,7 @@ where
     let mut h: Array2<F> = Array2::zeros((lines.len(), lines[0].len()));
 
     for (r, l) in lines.iter().enumerate() {
-        let x: Vec<&str> = l.split(" ").collect();
+        let x: Vec<&str> = l.split(' ').collect();
         for (j, c) in x.iter().enumerate() {
             h[(r, j)] = c.parse::<F>().unwrap();
         }
