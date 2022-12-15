@@ -1,6 +1,7 @@
 use crate::string::*;
 use crate::*;
 use anyhow::Result;
+use ndarray::Array2;
 use std::collections::{HashMap, HashSet};
 use std::io;
 
@@ -677,4 +678,288 @@ pub fn day10(use_example: bool) -> Result<(isize, isize)> {
     }
 
     Ok((result1, 0))
+}
+
+#[allow(unused)]
+fn day12(use_example: bool) -> Result<(usize, usize)> {
+    let day = 12;
+    let path = if use_example {
+        format!("input/example{:02}.in", day)
+    } else {
+        format!("input/{:02}.in", day)
+    };
+
+    let mut grid = read_grid(path);
+
+    let mut start = (0, 0);
+    let mut end = (0, 0);
+
+    let d = grid.dim();
+    dbg!(d);
+    for i in 0..d.0 {
+        for j in 0..d.1 {
+            if grid[(i, j)] == b'S' {
+                start = (i, j);
+                grid[(i, j)] = b'a';
+            } else if grid[(i, j)] == b'E' {
+                end = (i, j);
+                grid[(i, j)] = b'z';
+            }
+        }
+    }
+    type Pos = (usize, usize);
+    let mut visited: HashSet<_> = HashSet::new();
+    let mut s = vec![(start, 0)];
+    let mut result = 0;
+    while !s.is_empty() {
+        let (top, dist) = s.pop().unwrap();
+        //dbg!(top);
+        if visited.contains(&top) {
+            continue;
+        }
+        visited.insert(top);
+
+        for dir in [(0, -1), (0, 1), (1, 0), (-1, 0)] {
+            let new_pos = (top.0 as isize + dir.0, top.1 as isize + dir.1);
+            //dbg!(new_pos);
+            if new_pos.0 < 0
+                || new_pos.1 < 0
+                || new_pos.0 >= d.0 as isize
+                || new_pos.1 >= d.1 as isize
+            {
+                continue;
+            }
+            let np = (new_pos.0 as usize, new_pos.1 as usize);
+            if grid[np] > grid[top] + 1 {
+                continue;
+            }
+
+            if np == end {
+                result = dist + 1;
+                break;
+            }
+            //println!("inserting {:?}", np);
+            s.insert(0, (np, dist + 1));
+        }
+    }
+
+    // Part 1
+    let mut result1 = result;
+    {}
+
+    let mut result = d.0 * d.1;
+    for i in 0..d.0 {
+        for j in 0..d.1 {
+            if grid[(i, j)] != b'a' {
+                continue;
+            }
+            let start = (i, j);
+            let mut visited: HashSet<_> = HashSet::new();
+            let mut s = vec![(start, 0)];
+            while !s.is_empty() {
+                let (top, dist) = s.pop().unwrap();
+                //dbg!(top);
+                if visited.contains(&top) {
+                    continue;
+                }
+                visited.insert(top);
+
+                for dir in [(0, -1), (0, 1), (1, 0), (-1, 0)] {
+                    let new_pos = (top.0 as isize + dir.0, top.1 as isize + dir.1);
+                    //dbg!(new_pos);
+                    if new_pos.0 < 0
+                        || new_pos.1 < 0
+                        || new_pos.0 >= d.0 as isize
+                        || new_pos.1 >= d.1 as isize
+                    {
+                        continue;
+                    }
+                    let np = (new_pos.0 as usize, new_pos.1 as usize);
+                    if grid[np] > grid[top] + 1 {
+                        continue;
+                    }
+
+                    if np == end {
+                        result = result.min(dist + 1);
+                        break;
+                    }
+                    //println!("inserting {:?}", np);
+                    s.insert(0, (np, dist + 1));
+                }
+            }
+        }
+    }
+    // Part 2
+    let mut result2 = result;
+    {}
+
+    Ok((result1, result2))
+}
+
+#[allow(unused)]
+fn day14(use_example: bool) -> Result<(usize, usize)> {
+    let day = 14;
+    let path = if use_example {
+        format!("input/example{:02}.in", day)
+    } else {
+        format!("input/{:02}.in", day)
+    };
+
+    let lines = read_lines(path, true)?;
+    let mut result1 = 0;
+    {
+        let mut arr = Array2::zeros((601, 601));
+
+        // Part 1
+        for line in &lines {
+            let points: Vec<(usize, usize)> = line
+                .split(" -> ")
+                .map(|x| {
+                    let t: Vec<_> = x.split(",").map(as_usize).collect();
+                    (t[0], t[1])
+                })
+                .collect();
+            //	dbg!(&points);
+
+            for i in 0..points.len() - 1 {
+                let p0 = points[i];
+                let p1 = points[i + 1];
+                if p0.0 == p1.0 {
+                    let a = p0.1.min(p1.1);
+                    let b = p0.1.max(p1.1);
+                    for j in a..=b {
+                        arr[(p0.0, j)] = 1;
+                    }
+                } else {
+                    let a = p0.0.min(p1.0);
+                    let b = p0.0.max(p1.0);
+                    for j in a..=b {
+                        arr[(j, p0.1)] = 1;
+                    }
+                }
+            }
+        }
+        println!("{}", arr.iter().sum::<usize>());
+        println!("{}", arr[(500, 9)]);
+        let mut count = 0;
+        let mut land = true;
+
+        while land {
+            let mut grain = (500, 0);
+            land = false;
+            while grain.1 < 500 {
+                //println!("{} {}", grain.0, grain.1);
+                let new = (grain.0, grain.1 + 1);
+                if arr[new] == 0 {
+                    //		arr[new] = 1;
+                    grain = new;
+                    continue;
+                }
+                let new = (grain.0 - 1, grain.1 + 1);
+                if arr[new] == 0 {
+                    //		arr[new] = 1;
+                    grain = new;
+                    continue;
+                }
+                let new = (grain.0 + 1, grain.1 + 1);
+                if arr[new] == 0 {
+                    //		arr[new] = 1;
+                    grain = new;
+                    continue;
+                }
+                arr[grain] = 1;
+                land = true;
+                break;
+            }
+            if land {
+                count += 1;
+            }
+        }
+
+        result1 = count;
+    }
+    // Part 2
+    let mut result2 = 0;
+
+    {
+        let mut arr = Array2::zeros((1201, 601));
+
+        // Part 1
+        let mut result1 = 0;
+        let mut max_y = 0;
+        for line in &lines {
+            let points: Vec<(usize, usize)> = line
+                .split(" -> ")
+                .map(|x| {
+                    let t: Vec<_> = x.split(",").map(as_usize).collect();
+                    (t[0], t[1])
+                })
+                .collect();
+            //	dbg!(&points);
+
+            for i in 0..points.len() - 1 {
+                let p0 = points[i];
+                let p1 = points[i + 1];
+                max_y = max_y.max(p0.1);
+                max_y = max_y.max(p1.1);
+                if p0.0 == p1.0 {
+                    let a = p0.1.min(p1.1);
+                    let b = p0.1.max(p1.1);
+                    for j in a..=b {
+                        arr[(p0.0, j)] = 1;
+                    }
+                } else {
+                    let a = p0.0.min(p1.0);
+                    let b = p0.0.max(p1.0);
+                    for j in a..=b {
+                        arr[(j, p0.1)] = 1;
+                    }
+                }
+            }
+        }
+        println!("{}", arr.iter().sum::<usize>());
+        for x in 0..1201 {
+            arr[(x, max_y + 2)] = 1;
+        }
+        let mut count = 0;
+        let mut land = true;
+
+        while land {
+            let mut grain = (500, 0);
+            land = false;
+            while grain.1 < 500 {
+                //println!("{} {}", grain.0, grain.1);
+                let new = (grain.0, grain.1 + 1);
+                if arr[new] == 0 {
+                    //		arr[new] = 1;
+                    grain = new;
+                    continue;
+                }
+                let new = (grain.0 - 1, grain.1 + 1);
+                if arr[new] == 0 {
+                    //		arr[new] = 1;
+                    grain = new;
+                    continue;
+                }
+                let new = (grain.0 + 1, grain.1 + 1);
+                if arr[new] == 0 {
+                    //		arr[new] = 1;
+                    grain = new;
+                    continue;
+                }
+                arr[grain] = 1;
+                land = true;
+                break;
+            }
+            if land {
+                count += 1;
+            }
+            if grain == (500, 0) {
+                break;
+            }
+        }
+        result2 = count;
+    }
+
+    Ok((result1, result2))
 }

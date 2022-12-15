@@ -1,15 +1,16 @@
 use colored::Colorize;
 use scraper::{Html, Selector};
 
+pub mod day11;
+pub mod day13;
 pub mod io;
 pub mod old_days;
 pub mod string;
-pub mod day11;
 
 pub use io::*;
 pub use string::*;
 
-pub fn submit_answer(year: usize, day: usize, part: usize, answer: &str) -> anyhow::Result<()> {
+pub fn submit_answer(year: usize, day: usize, part: usize, answer: &str) -> anyhow::Result<bool> {
     let url = format!("https://adventofcode.com/{}/day/{}/answer", year, day);
     let session = &read_lines("session.txt", false)?[0];
     let mut request_headers = reqwest::header::HeaderMap::new();
@@ -37,7 +38,7 @@ pub fn submit_answer(year: usize, day: usize, part: usize, answer: &str) -> anyh
 
     println!("Content:\n {}", article_text);
 
-    Ok(())
+    Ok(article_text.contains("right answer") || article_text.contains("already complete it"))
 }
 
 pub fn check_day(day: usize, p0: String, p1: String) -> anyhow::Result<(bool, usize)> {

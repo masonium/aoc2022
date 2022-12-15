@@ -37,3 +37,29 @@ where
 {
     s.split(delim).filter_map(|x| x.parse::<T>().ok()).collect()
 }
+
+pub fn extract_ints(s: &str) -> Vec<isize> {
+    let a = s
+        .chars()
+        .map(|x| match x {
+            '0'..='9' | '-' => x,
+            _ => ' ',
+        })
+        .collect::<String>();
+
+    num_list_ignore::<isize>(&a, " ")
+}
+
+/// Extract all usize-like tokens in a vector, discarding all other
+/// characters.
+pub fn extract_uints(s: &str) -> Vec<usize> {
+    let a = s
+        .chars()
+        .map(|x| match x {
+            '0'..='9' => x,
+            _ => ' ',
+        })
+        .collect::<String>();
+
+    num_list_ignore::<usize>(&a, " ")
+}
