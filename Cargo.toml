@@ -17,3 +17,7 @@ anyhow = "*"
 colored = "*"
 reqwest = {version = "*", features=["blocking", "cookies"]}
 scraper = "*"
+itertools = "*"
+priority-queue = "*"
+tqdm = "*"
+fastrand = "*"

@@ -3,9 +3,13 @@ use scraper::{Html, Selector};
 
 pub mod day11;
 pub mod day13;
+pub mod day16;
 pub mod io;
 pub mod old_days;
 pub mod string;
+pub mod day19;
+pub mod day21;
+pub mod day22;
 
 pub use io::*;
 pub use string::*;
@@ -38,10 +42,11 @@ pub fn submit_answer(year: usize, day: usize, part: usize, answer: &str) -> anyh
 
     println!("Content:\n {}", article_text);
 
-    Ok(article_text.contains("right answer") || article_text.contains("already complete it"))
+    Ok(article_text.contains("That's the right answer")
+        || article_text.contains("already complete it"))
 }
 
-pub fn check_day(day: usize, p0: String, p1: String) -> anyhow::Result<(bool, usize)> {
+pub fn check_day(day: usize, p0: &str, p1: &str) -> anyhow::Result<(bool, usize)> {
     let answer_path = format!("input/example{:02}_answer.in", day);
     let answers: Vec<String> = read_lines(answer_path, true)?;
 
@@ -75,4 +80,97 @@ pub fn check_day(day: usize, p0: String, p1: String) -> anyhow::Result<(bool, us
     }
 
     Ok((all_match, answers.len()))
+}
+
+pub fn o_neighbors2(x: usize, y: usize, n: usize, m: usize) -> Vec<(usize, usize)> {
+    let mut res = vec![];
+    for d in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
+        let nx = x as isize + d.0;
+        let ny = y as isize + d.1;
+        if nx >= 0 && ny >= 0 && nx < n as isize && ny < m as isize {
+            res.push((nx as usize, ny as usize))
+        }
+    }
+    res
+}
+
+pub fn d_neighbors2(x: usize, y: usize, n: usize, m: usize) -> Vec<(usize, usize)> {
+    let mut res = vec![];
+    for d in [
+        (-1, 0),
+        (1, 0),
+        (0, -1),
+        (0, 1),
+        (-1, 1),
+        (-1, -1),
+        (1, -1),
+        (1, 1),
+    ] {
+        let nx = x as isize + d.0;
+        let ny = y as isize + d.1;
+        if nx >= 0 && ny >= 0 && nx < n as isize && ny < m as isize {
+            res.push((nx as usize, ny as usize))
+        }
+    }
+    res
+}
+
+/// Return all orthogonal neighbors of a point in a 3d lattices.
+pub fn o_neighbors3(
+    p: (usize, usize, usize),
+    s: (usize, usize, usize),
+) -> Vec<(usize, usize, usize)> {
+    let mut res = vec![];
+    for d in [
+        (-1, 0, 0),
+        (1, 0, 0),
+        (0, -1, 0),
+        (0, 1, 0),
+        (0, 0, -1),
+        (0, 0, 1),
+    ] {
+        let nx = p.0 as isize + d.0;
+        let ny = p.1 as isize + d.1;
+        let nz = p.2 as isize + d.2;
+        if nx >= 0
+            && ny >= 0
+            && nz >= 0
+            && nx < s.0 as isize
+            && ny < s.1 as isize
+            && nz < s.2 as isize
+        {
+            res.push((nx as usize, ny as usize, nz as usize))
+        }
+    }
+    res
+}
+
+/// Return all neighbors (orthogonal and diagonal) of  a point in a 3d lattices.
+pub fn d_neighbors3(
+    p: (usize, usize, usize),
+    s: (usize, usize, usize),
+) -> Vec<(usize, usize, usize)> {
+    let mut res = vec![];
+    for dx in [-1, 0, 1] {
+        for dy in [-1, 0, 1] {
+            for dz in [-1, 0, 1] {
+                if dx == 0 && dy == 0 && dz == 0 {
+                    continue;
+                }
+                let nx = p.0 as isize + dx;
+                let ny = p.1 as isize + dy;
+                let nz = p.2 as isize + dz;
+                if nx >= 0
+                    && ny >= 0
+                    && nz >= 0
+                    && nx < s.0 as isize
+                    && ny < s.1 as isize
+                    && nz < s.2 as isize
+                {
+                    res.push((nx as usize, ny as usize, nz as usize))
+                }
+            }
+        }
+    }
+    res
 }
